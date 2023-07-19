@@ -1,20 +1,6 @@
 const mailgen = require("mailgen");
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
-const {
-  user,
-  CLIENT_ID,
-  CLEINT_SECRET,
-  REDIRECT_URI,
-  REFRESH_TOKEN,
-} = require("../env.js");
-
-const oAuth2Client = new google.auth.OAuth2(
-  CLIENT_ID,
-  CLEINT_SECRET,
-  REDIRECT_URI
-);
-oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
 function generateEmail(name, email, message) {
   const mailGenerator = new mailgen({
@@ -70,6 +56,12 @@ function generateEmail(name, email, message) {
 
 async function sendMail(name, email, message) {
   try {
+    const oAuth2Client = new google.auth.OAuth2(
+      process.env.CLIENT_ID,
+      process.env.CLEINT_SECRET,
+      process.env.REDIRECT_URI
+    );
+    oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
     console.log("sending mail");
     const accessToken = await oAuth2Client.getAccessToken();
 
@@ -77,18 +69,18 @@ async function sendMail(name, email, message) {
       service: "gmail",
       auth: {
         type: "OAuth2",
-        user: user,
-        clientId: CLIENT_ID,
-        clientSecret: CLEINT_SECRET,
-        refreshToken: REFRESH_TOKEN,
-        accessToken: accessToken,
+        user: process.env.user,
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLEINT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
+        accessToken: process.env.accessToken,
       },
     });
 
     const mailData = generateEmail(name, email, message);
     const mailOptions = {
-      from: `Om Website <${user}>`,
-      to: "ue203025.aryan.cse@gmail.com",
+      from: `Om Website <${process.env.user}>`,
+      to: `${process.env.COMPANY_MAIL}`,
       subject: mailData.subject,
       text: mailData.text,
       html: mailData.html,
